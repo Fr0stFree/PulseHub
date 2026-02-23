@@ -1,5 +1,6 @@
 import asyncio
 from collections.abc import Awaitable, Callable
+from contextlib import suppress
 import json
 from typing import cast
 from uuid import uuid4
@@ -9,6 +10,7 @@ from aiokafka.structs import ConsumerRecord
 
 from common.brokers.interface import AbstractConsumerInterceptor
 from common.logs import LoggerLike
+from common.utils.backoff import AsyncBackoff
 
 
 class KafkaConsumer:
@@ -25,6 +27,7 @@ class KafkaConsumer:
             bootstrap_servers=address,
             value_deserializer=lambda value: json.loads(value.decode("utf-8")),
         )
+        self._is_ready = False
         self._processor: asyncio.Task | None = None
         self._on_message: Callable[[dict], Awaitable[None]] | None = None
         self._interceptors: list[AbstractConsumerInterceptor] = []
@@ -42,8 +45,10 @@ class KafkaConsumer:
             self._address,
             self._topic,
         )
-        await self._consumer.start()
+        backoff = AsyncBackoff(name=f"Kafka consumer '{self._client_id}'", logger=self._logger)
+        await backoff.run(lambda: self._consumer.start())
         self._processor = asyncio.create_task(self._process_messages())
+        self._is_ready = True
 
     def _retrieve_headers(self, message: ConsumerRecord) -> dict[str, str]:
         headers = {}
@@ -76,6 +81,8 @@ class KafkaConsumer:
                 await interceptor.after_receive(message.topic, payload, headers)
 
     async def is_healthy(self) -> bool:
+        if not self._is_ready:
+            return False
         await self._consumer.topics()
         if self._processor is None or self._processor.done():
             return False
@@ -84,3 +91,8 @@ class KafkaConsumer:
     async def stop(self) -> None:
         self._logger.info("Shutting down the kafka consumer '%s'...", self._client_id)
         await self._consumer.stop()
+        if self._processor:
+            self._processor.cancel()
+            with suppress(asyncio.CancelledError):
+                await self._processor
+        self._is_ready = False

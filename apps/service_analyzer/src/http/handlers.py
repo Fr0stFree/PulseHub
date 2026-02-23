@@ -14,3 +14,12 @@ async def health(request: Request, service: IService = Provide[Container.service
         return json_response(status=HTTPStatus.OK)
 
     return json_response(status=HTTPStatus.GATEWAY_TIMEOUT)
+
+
+@inject
+async def ready(request: Request, service: IService = Provide[Container.service]) -> Response:
+    is_ready = await service.is_ready()
+    if is_ready:
+        return json_response(status=HTTPStatus.OK)
+
+    return json_response(status=HTTPStatus.SERVICE_UNAVAILABLE)

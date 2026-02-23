@@ -13,6 +13,7 @@ class MetricsExporter:
         self._endpoint = endpoint
         self._logger = logger
         self._is_enabled = is_enabled
+        self._is_ready = False
 
         self._exporter: OTLPMetricExporter
         self._reader: PeriodicExportingMetricReader
@@ -29,6 +30,7 @@ class MetricsExporter:
         self._provider = MeterProvider(resource=resource, metric_readers=[self._reader])
         set_meter_provider(self._provider)
         self._logger.info("Metrics exporter is enabled to '%s'", self._endpoint)
+        self._is_ready = True
 
     async def stop(self) -> None:
         if not self._is_enabled:
@@ -37,9 +39,15 @@ class MetricsExporter:
         self._logger.info("Stopping metrics exporter...")
         self._reader.shutdown()
         self._exporter.shutdown()
+        self._is_ready = False
 
     async def is_healthy(self) -> bool:
         return True
+
+    async def is_ready(self) -> bool:
+        if not self._is_enabled:
+            return True
+        return self._is_ready
 
     @property
     def meter(self) -> Meter:

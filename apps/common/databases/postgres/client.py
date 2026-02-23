@@ -3,6 +3,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from common.logs import LoggerLike
+from common.utils.backoff import AsyncBackoff
 
 
 class PostgresClient:
@@ -12,6 +13,7 @@ class PostgresClient:
         self._host = host
         self._port = port
         self._database = database
+        self._is_ready = False
         self._engine = create_async_engine(
             f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{database}", echo=False, future=True
         )
@@ -26,20 +28,24 @@ class PostgresClient:
             self._database,
             self._user,
         )
-        async with self._engine.connect() as conn:
-            await conn.execute(text("SELECT 1"))
+        backoff = AsyncBackoff(name="Postgres client", logger=self._logger)
+        await backoff.run(lambda: self._engine.connect())
+        self._is_ready = True
 
     async def stop(self) -> None:
         self._logger.info("Shutting down the postgres client...")
         await self._engine.dispose()
+        self._is_ready = False
+
+    async def is_ready(self) -> bool:
+        return self._is_ready
 
     async def is_healthy(self) -> bool:
-        try:
-            async with self._async_session() as session:
-                await session.execute(text("SELECT 1"))
-            return True
-        except Exception:
+        if not self._is_ready:
             return False
+        async with self._async_session() as session:
+            await session.execute(text("SELECT 1"))
+        return True
 
     @property
     def engine(self) -> AsyncEngine:

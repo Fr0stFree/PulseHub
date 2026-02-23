@@ -5,6 +5,7 @@ from aiokafka import AIOKafkaProducer
 
 from common.brokers.interface import AbstractProducerInterceptor
 from common.logs import LoggerLike
+from common.utils.backoff import AsyncBackoff
 
 
 class KafkaProducer:
@@ -21,6 +22,7 @@ class KafkaProducer:
         self._client_prefix = client_prefix
         self._logger = logger
         self._client_id = f"{client_prefix}-{uuid4().hex[:6]}"
+        self._is_ready = False
         self._producer = AIOKafkaProducer(
             bootstrap_servers=address,
             client_id=self._client_id,
@@ -38,15 +40,23 @@ class KafkaProducer:
             self._address,
             self._topic,
         )
-        await self._producer.start()
+        backoff = AsyncBackoff(name=f"Kafka producer '{self._client_id}'", logger=self._logger)
+        await backoff.run(lambda: self._producer.start())
+        self._is_ready = True
+
+    async def is_ready(self) -> bool:
+        return self._is_ready
 
     async def is_healthy(self) -> bool:
+        if not self._is_ready:
+            return False
         await self._producer.partitions_for(self._topic)
         return True
 
     async def stop(self) -> None:
         self._logger.info("Shutting down the kafka producer '%s'...", self._client_id)
         await self._producer.stop()
+        self._is_ready = False
 
     def _encode_headers(self, headers: dict[str, str]) -> list[tuple[str, bytes]]:
         return [(key, value.encode("utf-8")) for key, value in headers.items()]

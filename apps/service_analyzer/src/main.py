@@ -23,6 +23,7 @@ async def main(
     consumer: IBrokerConsumer = Provide[Container.broker_consumer],
 ) -> None:
     http_server.add_handler(path="/health", handler=handlers.health, method=HTTPMethod.GET)
+    http_server.add_handler(path="/ready", handler=handlers.ready, method=HTTPMethod.GET)
     consumer.add_interceptor(ObservabilityConsumerInterceptor())
     consumer.set_message_handler(on_new_message)
     grpc_server.setup_servicer(rpc_servicer)

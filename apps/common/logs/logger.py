@@ -25,6 +25,7 @@ class LoggerHandle:
         self._level = level
         self._is_export_enabled = is_export_enabled
         self._exporting_endpoint = exporting_endpoint
+        self._is_ready = False
 
         self._logger = logging.getLogger(name)
         self._logger.setLevel(level)
@@ -62,14 +63,21 @@ class LoggerHandle:
             "Logging is enabled. Exporting is %s",
             f"enabled to '{self._exporting_endpoint}'" if self._is_export_enabled else "disabled",
         )
+        self._is_ready = True
 
     async def stop(self) -> None:
         self._logger.info("Stopping logger...")
         if hasattr(self, "_exporter"):
             self._exporter.shutdown(timeout_millis=1000)
+        self._is_ready = False
 
     async def is_healthy(self) -> bool:
+        if not self._is_ready:
+            return False
         return True
+
+    async def is_ready(self) -> bool:
+        return self._is_ready
 
     @property
     def logger(self) -> LoggerLike:

@@ -4,6 +4,7 @@ from aiohttp.typedefs import Handler as IHttpHandler, Middleware as IHttpMiddlew
 from aiohttp.web import Application, AppRunner, RouteTableDef, TCPSite
 
 from common.logs import LoggerLike
+from common.utils.backoff import AsyncBackoff
 
 
 class HTTPServer:
@@ -12,6 +13,7 @@ class HTTPServer:
         self._logger = logger
         self._app = Application(logger=logger)
         self._runner = AppRunner(self._app)
+        self._is_ready = False
 
         self._site: TCPSite
 
@@ -32,17 +34,23 @@ class HTTPServer:
         self._logger.info("Registering %d HTTP routes", len(routes))
         self._app.add_routes(routes)
 
+    def is_ready(self) -> bool:
+        return self._is_ready
+
     async def is_healthy(self) -> bool:
         return self._runner.server is not None
 
     async def start(self) -> None:
         self._logger.info("Starting the http server on port %d...", self._port)
-        await self._runner.setup()
+        backoff = AsyncBackoff(name="HTTP server", logger=self._logger)
+        await backoff.run(lambda: self._runner.setup())
         self._site = TCPSite(self._runner, "0.0.0.0", self._port)
-        await self._site.start()
+        await backoff.run(lambda: self._site.start())
+        self._is_ready = True
 
     async def stop(self) -> None:
         self._logger.info("Shutting down the http server...")
         await self._site.stop()
         await self._runner.shutdown()
         await self._app.cleanup()
+        self._is_ready = False

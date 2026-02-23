@@ -31,6 +31,16 @@ async def health(request: Request, service: BaseService = Provide[Container.serv
     return json_response(status=HTTPStatus.GATEWAY_TIMEOUT)
 
 
+@routes.get("/ready")
+@inject
+async def ready(request: Request, service: BaseService = Provide[Container.service]) -> Response:
+    result = await service.is_ready()
+    if result:
+        return json_response(status=HTTPStatus.OK)
+
+    return json_response(status=HTTPStatus.SERVICE_UNAVAILABLE)
+
+
 @routes.post("/targets")
 @inject
 async def add_target(

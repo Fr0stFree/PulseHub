@@ -22,6 +22,7 @@ async def main(
     producer: IBrokerProducer = Provide[Container.broker_producer],
 ) -> None:
     http_server.add_handler(path="/health", handler=handlers.health, method=HTTPMethod.GET)
+    http_server.add_handler(path="/ready", handler=handlers.ready, method=HTTPMethod.GET)
     grpc_server.setup_servicer(rpc_servicer)
     grpc_server.add_interceptor(ObservabilityServerInterceptor())
     producer.add_interceptor(ObservabilityProducerInterceptor())

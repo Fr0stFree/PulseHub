@@ -13,6 +13,7 @@ class TraceExporter:
         self._endpoint = endpoint
         self._is_enabled = is_enabled
         self._logger = logger
+        self._is_ready = False
 
         self._provider: TracerProvider
         self._exporter: OTLPSpanExporter
@@ -28,14 +29,24 @@ class TraceExporter:
         self._provider.add_span_processor(BatchSpanProcessor(self._exporter))
         self._logger.info("Tracing exporter is enabled to '%s'", self._endpoint)
         trace.set_tracer_provider(self._provider)
+        self._is_ready = True
 
     async def stop(self) -> None:
         self._logger.info("Stopping trace exporter...")
         self._provider.shutdown()
         self._exporter.shutdown()
+        self._is_ready = False
+
+    async def is_ready(self) -> bool:
+        if not self._is_enabled:
+            return True
+        return self._is_ready
 
     async def is_healthy(self) -> bool:
         if not self._is_enabled:
             return True
+
+        if not self._is_ready:
+            return False
 
         return True
