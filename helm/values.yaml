@@ -1,3 +1,6 @@
+####################################################
+# ------------ SERVICES CONFIGURATION ------------ #
+####################################################
 service-api:
   replicaCount: 1
   image:
@@ -42,6 +45,130 @@ service-crawler:
     REDIS__PASSWORD: ""
     REDIS__DATABASE: "0"
     KAFKA_PRODUCER__BOOTSTRAP_SERVERS: "pulse-hub-kafka:9092"
-    KAFKA_PRODUCER__TOPIC: "spans"
+    KAFKA_PRODUCER__TOPIC: "url-statuses"
     CRAWLER_CONCURRENT_WORKERS: "1"
 
+service-analyzer:
+  replicaCount: 1
+  image:
+    repository: "pulse-hub/service-analyzer"
+    tag: "latest"
+    pullPolicy: "IfNotPresent"
+  service:
+    httpPort: 8080
+    grpcPort: 50051
+  config:
+    TRACE_EXPORTER__IS_ENABLED: "true"
+    TRACE_EXPORTER__OTLP_ENDPOINT: "http://pulse-hub-otel-collector:4317"
+    METRICS_EXPORTER__IS_ENABLED: "true"
+    METRICS_EXPORTER__OTLP_ENDPOINT: "http://pulse-hub-otel-collector:4317"
+    LOGGING__IS_EXPORT_ENABLED: "true"
+    LOGGING__EXPORTING_ENDPOINT: "http://pulse-hub-otel-collector:4317"
+    HTTP_SERVER__PORT: "8080"
+    GRPC_SERVER__PORT: "50051"
+    KAFKA_CONSUMER__BOOTSTRAP_SERVERS: "pulse-hub-kafka:9092"
+    KAFKA_CONSUMER__TOPIC: "url-statuses"
+    KAFKA_CONSUMER__GROUP_ID: "analyzer-group"
+    POSTGRES__HOST: "pulse-hub-postgres"
+    POSTGRES__PORT: "5432"
+    POSTGRES__USER: "analyzer"
+    POSTGRES__PASSWORD: "analyzer-password"
+    POSTGRES__DATABASE: "analyzer"
+
+##########################################################
+# ------------ INFRASTRUCTURE CONFIGURATION ------------ #
+##########################################################
+postgres:
+  image:
+    repository: "bitnami/postgresql"
+  architecture: "standalone"
+  auth:
+    username: "analyzer"
+    password: "analyzer-password"
+    database: "analyzer"
+  primary:
+    persistence:
+      enabled: false
+
+redis:
+  image:
+    repository: "bitnami/redis"
+  architecture: "standalone"
+  auth:
+    enabled: false
+  persistence:
+    enabled: false
+
+kafka:
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/kafka
+    tag: 4.0.0-debian-12-r10
+  provisioning:
+    enabled: false
+  kraft:
+    enabled: true
+  controller:
+    replicaCount: 1
+    controllerOnly: false
+  broker:
+    replicaCount: 0
+  listeners:
+    client:
+      protocol: PLAINTEXT
+    controller:
+      protocol: PLAINTEXT
+    interbroker:
+      protocol: PLAINTEXT
+    external:
+      protocol: PLAINTEXT
+  defaultReplicationFactor: 1
+  offsetsTopicReplicationFactor: 1
+  transactionStateLogReplicationFactor: 1
+  transactionStateLogMinIsr: 1
+  minInsyncReplicas: 1
+  persistence:
+    enabled: false
+  externalAccess:
+    enabled: false
+
+otel-collector:
+  image:
+    repository: otel/opentelemetry-collector-contrib
+  mode: deployment
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    processors:
+      batch: {}
+    exporters:
+      otlp:
+        endpoint: jaeger:4317
+        tls:
+          insecure: true
+      otlphttp/loki:
+        endpoint: http://loki:3100/otlp
+        tls:
+          insecure: true
+      prometheus:
+        endpoint: 0.0.0.0:8889
+      debug: {}
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp]
+        logs:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [debug] # TODO: change to otlphttp/loki
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [debug] # TODO: change to prometheus

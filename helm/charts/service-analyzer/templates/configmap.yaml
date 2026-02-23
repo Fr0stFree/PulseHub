@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ .Release.Name }}-{{ .Chart.Name }}-config-map"
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: "{{ .Release.Name }}-{{ .Chart.Name }}-config-map"
+data:
+  {{- range $key, $value := .Values.config }}
+  {{ $key }}: "{{ $value }}"
+  {{- end }}

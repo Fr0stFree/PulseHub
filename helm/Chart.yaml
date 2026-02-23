@@ -6,24 +6,32 @@ description: A Helm chart for deploying the Pulse Hub application
 version: 0.1.0
 appVersion: "latest"
 dependencies:
+  - name: service-api
+    version: 0.1.0
+    repository: "file://charts/service-api"
+
+  - name: service-crawler
+    version: 0.1.0
+    repository: "file://charts/service-crawler"
+
+  - name: service-analyzer
+    version: 0.1.0
+    repository: "file://charts/service-analyzer"
+
   - name: redis
     version: 25.3.0
     repository: https://charts.bitnami.com/bitnami
-    
+
   - name: postgresql
     alias: postgres
     version: 18.4.0
     repository: https://charts.bitnami.com/bitnami
 
-  # - name: kafka
-  #   version: 32.4.3
-  #   repository: https://charts.bitnami.com/bitnami
+  - name: kafka
+    version: 32.4.3
+    repository: https://charts.bitnami.com/bitnami
 
   - name: opentelemetry-collector
     alias: otel-collector
     version: 0.145.0
     repository: https://open-telemetry.github.io/opentelemetry-helm-charts
-  
-  - name: service-api
-    version: 0.1.0
-    repository: "file://charts/service-api"

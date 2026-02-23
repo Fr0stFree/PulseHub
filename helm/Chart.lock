@@ -1,15 +1,24 @@
 dependencies:
+- name: service-api
+  repository: file://charts/service-api
+  version: 0.1.0
+- name: service-crawler
+  repository: file://charts/service-crawler
+  version: 0.1.0
+- name: service-analyzer
+  repository: file://charts/service-analyzer
+  version: 0.1.0
 - name: redis
   repository: https://charts.bitnami.com/bitnami
   version: 25.3.0
 - name: postgresql
   repository: https://charts.bitnami.com/bitnami
   version: 18.4.0
+- name: kafka
+  repository: https://charts.bitnami.com/bitnami
+  version: 32.4.3
 - name: opentelemetry-collector
   repository: https://open-telemetry.github.io/opentelemetry-helm-charts
   version: 0.145.0
-- name: api
-  repository: file://charts/service-api
-  version: 0.1.0
-digest: sha256:340af6107afbada3daf267795f856d82f631ee8d23ec06a57b1cacd174078e3f
-generated: "2026-02-21T17:00:20.412299+03:00"
+digest: sha256:a072cb9b22dfdf7f7cb00d3fc502c2a7571ad832a07233524413ab716b889b26
+generated: "2026-02-23T13:34:39.752475+03:00"
