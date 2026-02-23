@@ -36,6 +36,7 @@ if [[ ! -f "${DOCKERFILE_PATH}" ]]; then
     exit 1
 fi
 
+eval $(minikube -p minikube docker-env)
 echo "[build] Building Docker image for service '${SERVICE_NAME}' using Dockerfile at: ${DOCKERFILE_PATH}"
 docker build -t "${PROJECT_NAME}/${SERVICE_NAME}:latest" -f "${DOCKERFILE_PATH}" "${APP_ROOT}"
 echo "[build] Successfully built image '${PROJECT_NAME}/${SERVICE_NAME}:latest'"

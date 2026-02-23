@@ -16,8 +16,8 @@ service-api:
     LOGGING__IS_EXPORT_ENABLED: "true"
     LOGGING__EXPORTING_ENDPOINT: "http://pulse-hub-otel-collector:4317"
     HTTP_SERVER__PORT: "8080"
-    ANALYZER_CLIENT__ADDRESS: "analyzer:50051"
-    CRAWLER_CLIENT__ADDRESS: "crawler:50051"
+    ANALYZER_CLIENT__ADDRESS: "pulse-hub-service-analyzer-service:50051"
+    CRAWLER_CLIENT__ADDRESS: "pulse-hub-service-crawler-service:50051"
 
 service-crawler:
   replicaCount: 1
@@ -37,7 +37,7 @@ service-crawler:
     LOGGING__EXPORTING_ENDPOINT: "http://pulse-hub-otel-collector:4317"
     HTTP_SERVER__PORT: "8080"
     GRPC_SERVER__PORT: "50051"
-    REDIS__HOST: "pulse-hub-redis"
+    REDIS__HOST: "pulse-hub-redis-master"
     REDIS__PORT: "6379"
     REDIS__PASSWORD: ""
     REDIS__DATABASE: "0"
