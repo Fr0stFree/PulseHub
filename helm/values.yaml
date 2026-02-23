@@ -110,9 +110,9 @@ kafka:
     enabled: true
   controller:
     replicaCount: 1
-    controllerOnly: false
+    controllerOnly: true
   broker:
-    replicaCount: 0
+    replicaCount: 1
   listeners:
     client:
       protocol: PLAINTEXT

@@ -29,7 +29,12 @@ class PostgresClient:
             self._user,
         )
         backoff = AsyncBackoff(name="Postgres client", logger=self._logger)
-        await backoff.run(lambda: self._engine.connect())
+        
+        async def check_connection() -> None:
+            async with self._engine.connect() as connection:
+                await connection.execute(text("SELECT 1"))
+
+        await backoff.run(check_connection)
         self._is_ready = True
 
     async def stop(self) -> None:
