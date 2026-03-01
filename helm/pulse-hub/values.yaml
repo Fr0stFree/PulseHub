@@ -135,6 +135,17 @@ otel-collector:
   image:
     repository: otel/opentelemetry-collector-contrib
   mode: deployment
+  ports:
+    metrics:
+      enabled: true
+      containerPort: 8889
+      servicePort: 8889
+      protocol: TCP
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "8889"
+      prometheus.io/path: "/metrics"
   config:
     receivers:
       otlp:
@@ -170,4 +181,4 @@ otel-collector:
         metrics:
           receivers: [otlp]
           processors: [batch]
-          exporters: [debug] # TODO: change to prometheus
+          exporters: [prometheus]
