@@ -104,15 +104,21 @@ kafka:
     registry: docker.io
     repository: bitnamilegacy/kafka
     tag: 4.0.0-debian-12-r10
-  provisioning:
-    enabled: false
   kraft:
     enabled: true
   controller:
     replicaCount: 1
-    controllerOnly: true
+    controllerOnly: false
   broker:
-    replicaCount: 1
+    replicaCount: 0
+  overrideConfiguration:
+    offsets.topic.replication.factor: 1
+    transaction.state.log.replication.factor: 1
+    transaction.state.log.min.isr: 1
+    default.replication.factor: 1
+    min.insync.replicas: 1
+    share.coordinator.state.topic.replication.factor: 1
+    share.coordinator.state.topic.min.isr: 1
   listeners:
     client:
       protocol: PLAINTEXT
@@ -122,13 +128,6 @@ kafka:
       protocol: PLAINTEXT
     external:
       protocol: PLAINTEXT
-  defaultReplicationFactor: 1
-  offsetsTopicReplicationFactor: 1
-  transactionStateLogReplicationFactor: 1
-  transactionStateLogMinIsr: 1
-  minInsyncReplicas: 1
-  persistence:
-    enabled: false
   externalAccess:
     enabled: false
 
