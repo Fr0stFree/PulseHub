@@ -1,0 +1,11 @@
+---
+apiVersion: v2
+type: application
+name: observability-grafana
+description: A Helm chart for deploying Grafana observability stack for pulse-hub application
+version: 0.1.0
+appVersion: "latest"
+dependencies:
+  - name: loki
+    version: "6.53.0"
+    repository: https://grafana.github.io/helm-charts

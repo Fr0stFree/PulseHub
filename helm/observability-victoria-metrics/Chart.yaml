@@ -1,0 +1,7 @@
+---
+apiVersion: v2
+type: application
+name: observability-victoria-metrics
+description: A Helm chart for deploying Victoria Metrics observability stack for pulse-hub application
+version: 0.1.0
+appVersion: "latest"
