@@ -55,7 +55,7 @@ class RPCServicer(AnalyzerServiceServicer):
         repo: Repository = Provide[Container.repository],
         logger: LoggerLike = Provide[Container.logger],
         span: Span = Provide[Container.current_span],
-    ) -> None:
+    ) -> Empty:
         logger.info("Deleting target '%s'...", request.id)
         await repo.delete_target(request.id)
         span.set_attribute("target.id", request.id)

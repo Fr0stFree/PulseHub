@@ -1,7 +1,0 @@
----
-apiVersion: v2
-type: application
-name: observability-elastic
-description: A Helm chart for deploying Elastic observability stack for pulse-hub application
-version: 0.1.0
-appVersion: "latest"

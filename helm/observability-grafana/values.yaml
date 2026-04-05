@@ -1,55 +1,3 @@
-loki:
-  deploymentMode: SingleBinary
-  singleBinary:
-    replicas: 1
-    persistence:
-      enabled: true
-    extraVolumes:
-      - name: loki-var
-        emptyDir: {}
-
-    extraVolumeMounts:
-      - name: loki-var
-        mountPath: /var/loki
-
-  read:
-    replicas: 0
-  write:
-    replicas: 0
-  backend:
-    replicas: 0
-  gateway:
-    enabled: false
-  chunksCache:
-    enabled: false
-  resultsCache:
-    enabled: false
-  lokiCanary:
-    enabled: false
-  test:
-    enabled: false
-  loki:
-    auth_enabled: false
-    commonConfig:
-      replication_factor: 1
-    containerSecurityContext:
-      readOnlyRootFilesystem: false
-    schemaConfig:
-      configs:
-        - from: "2024-01-01"
-          store: tsdb
-          object_store: filesystem
-          schema: v13
-          index:
-            prefix: index_
-            period: 24h
-    storage:
-      type: filesystem
-      bucketNames:
-        chunks: chunks
-        ruler: ruler
-        admin: admin
-
 prometheus:
   alertmanager:
     enabled: false
@@ -64,24 +12,57 @@ prometheus:
     persistentVolume:
       enabled: false
     retention: "6h"
-scrapeConfigs:
-  prometheus:
-    enabled: true
-  kubernetes-api-servers:
-    enabled: false
-  kubernetes-nodes:
-    enabled: false
-  kubernetes-nodes-cadvisor:
-    enabled: false
-  kubernetes-service-endpoints:
-    enabled: false
-  kubernetes-service-endpoints-slow:
-    enabled: false
-  prometheus-pushgateway:
-    enabled: false
-  kubernetes-services:
-    enabled: false
-  kubernetes-pods:
-    enabled: false
-  kubernetes-pods-slow:
-    enabled: false
+
+  scrapeConfigs:
+    opentelemetry-collector:
+      enabled: true
+      job_name: "opentelemetry-collector"
+      honor_labels: true
+      static_configs:
+        - targets:
+            - "pulse-hub-otel-collector:8889"
+      metrics_path: "/metrics"
+      scrape_interval: 30s
+      scrape_timeout: 10s
+    prometheus:
+      enabled: true
+    kubernetes-api-servers:
+      enabled: false
+    kubernetes-nodes:
+      enabled: false
+    kubernetes-nodes-cadvisor:
+      enabled: false
+    kubernetes-service-endpoints:
+      enabled: false
+    kubernetes-service-endpoints-slow:
+      enabled: false
+    prometheus-pushgateway:
+      enabled: false
+    kubernetes-services:
+      enabled: false
+    kubernetes-pods:
+      enabled: false
+    kubernetes-pods-slow:
+      enabled: false
+
+grafana:
+  image:
+    repository: grafana/grafana
+    tag: 10.4.2          # Версия, которую вы хотите использовать
+    pullPolicy: IfNotPresent
+
+  admin:
+    user: admin
+    password: admin
+
+  datasources:
+    secretDefinition:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://pulse-hub-observability-prometheus-server:80   # ВАЖНО: порт 80!
+          access: proxy
+          isDefault: true
+          jsonData:
+            timeInterval: 15s
