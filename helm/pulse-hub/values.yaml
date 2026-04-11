@@ -162,7 +162,7 @@ otel-collector:
         tls:
           insecure: true
       otlphttp/loki:
-        endpoint: http://loki:3100/otlp
+        endpoint: http://pulse-hub-observability-loki:3100/otlp
         tls:
           insecure: true
       prometheus:
@@ -173,11 +173,11 @@ otel-collector:
         traces:
           receivers: [otlp]
           processors: [batch]
-          exporters: [otlp]
+          exporters: [debug]
         logs:
           receivers: [otlp]
           processors: [batch]
-          exporters: [debug] # TODO: change to otlphttp/loki
+          exporters: [otlphttp/loki]
         metrics:
           receivers: [otlp]
           processors: [batch]
