@@ -8,5 +8,8 @@ dependencies:
 - name: loki
   repository: https://grafana.github.io/helm-charts
   version: 6.55.0
-digest: sha256:c68001f5026bae0faeb309950111609a09b45c0fb162238746dddb386b79601a
-generated: "2026-04-11T18:16:42.209938+03:00"
+- name: tempo
+  repository: https://grafana.github.io/helm-charts
+  version: 1.24.4
+digest: sha256:6c73205f4fd5b7947153e24b28f2e94535973918977d7a198140448cd03f8150
+generated: "2026-04-11T18:52:27.916978+03:00"

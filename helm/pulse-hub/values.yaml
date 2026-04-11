@@ -157,8 +157,8 @@ otel-collector:
     processors:
       batch: {}
     exporters:
-      otlp:
-        endpoint: jaeger:4317
+      otlp/tempo:
+        endpoint: pulse-hub-observability-tempo:4317
         tls:
           insecure: true
       otlphttp/loki:
@@ -173,7 +173,7 @@ otel-collector:
         traces:
           receivers: [otlp]
           processors: [batch]
-          exporters: [debug]
+          exporters: [otlp/tempo]
         logs:
           receivers: [otlp]
           processors: [batch]

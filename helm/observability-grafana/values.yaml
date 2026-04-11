@@ -73,6 +73,11 @@ grafana:
           type: loki
           access: proxy
           url: http://pulse-hub-observability-loki:3100
+        - name: Tempo
+          type: tempo
+          access: proxy
+          url: http://pulse-hub-observability-tempo:3200
+          isDefault: false
 
 loki:
   deploymentMode: SingleBinary
@@ -123,3 +128,38 @@ loki:
             period: 24h
     limits_config:
       allow_structured_metadata: true
+
+tempo:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  memBallastSizeMbs: 64
+  reportingEnabled: false
+  multitenancyEnabled: false
+  metricsGenerator:
+    enabled: false
+  retention: 8h
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+      wal:
+        path: /var/tempo/wal
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4317"
+        http:
+          endpoint: "0.0.0.0:4318"
+  tempoQuery:
+    enabled: false
+  serviceMonitor:
+    enabled: false
+  persistence:
+    enabled: false
