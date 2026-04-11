@@ -46,23 +46,31 @@ prometheus:
       enabled: false
 
 grafana:
-  image:
-    repository: grafana/grafana
-    tag: 10.4.2          # Версия, которую вы хотите использовать
-    pullPolicy: IfNotPresent
+  enabled: true
 
-  admin:
-    user: admin
-    password: admin
+  adminUser: admin
+  adminPassword: admin
+
+  persistence:
+    enabled: false
+
+  service:
+    type: ClusterIP
+
+  resources:
+    limits:
+      memory: 256Mi
+      cpu: 200m
+    requests:
+      memory: 128Mi
+      cpu: 100m
 
   datasources:
-    secretDefinition:
+    datasources.yaml:
       apiVersion: 1
       datasources:
         - name: Prometheus
           type: prometheus
-          url: http://pulse-hub-observability-prometheus-server:80   # ВАЖНО: порт 80!
           access: proxy
+          url: http://pulse-hub-observability-prometheus-server
           isDefault: true
-          jsonData:
-            timeInterval: 15s

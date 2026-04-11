@@ -10,5 +10,5 @@ dependencies:
     version: "28.13.0"
     repository: https://prometheus-community.github.io/helm-charts
   - name: grafana
-    repository: oci://ghcr.io/grafana-community/helm-charts/grafana
-    version: "11.3.7"
+    version: "8.5.0"
+    repository: https://grafana.github.io/helm-charts
