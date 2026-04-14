@@ -30,8 +30,3 @@ dependencies:
   - name: kafka
     version: 32.4.3
     repository: https://charts.bitnami.com/bitnami
-
-  - name: opentelemetry-collector
-    alias: otel-collector
-    version: 0.145.0
-    repository: https://open-telemetry.github.io/opentelemetry-helm-charts

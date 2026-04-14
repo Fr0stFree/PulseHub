@@ -1,6 +1,7 @@
 ####################################################
 # ------------ SERVICES CONFIGURATION ------------ #
 ####################################################
+
 service-api:
   replicaCount: 1
   image:
@@ -13,11 +14,11 @@ service-api:
     host: api.pulse-hub.local
   config:
     TRACE_EXPORTER__IS_ENABLED: "true"
-    TRACE_EXPORTER__OTLP_ENDPOINT: "http://pulse-hub-otel-collector:4317"
+    TRACE_EXPORTER__OTLP_ENDPOINT: "http://pulse-hub-observability-otel-collector:4317"
     METRICS_EXPORTER__IS_ENABLED: "true"
-    METRICS_EXPORTER__OTLP_ENDPOINT: "http://pulse-hub-otel-collector:4317"
+    METRICS_EXPORTER__OTLP_ENDPOINT: "http://pulse-hub-observability-otel-collector:4317"
     LOGGING__IS_EXPORT_ENABLED: "true"
-    LOGGING__EXPORTING_ENDPOINT: "http://pulse-hub-otel-collector:4317"
+    LOGGING__EXPORTING_ENDPOINT: "http://pulse-hub-observability-otel-collector:4317"
     HTTP_SERVER__PORT: "8080"
     ANALYZER_CLIENT__ADDRESS: "pulse-hub-service-analyzer-service:50051"
     CRAWLER_CLIENT__ADDRESS: "pulse-hub-service-crawler-service:50051"
@@ -33,11 +34,11 @@ service-crawler:
     grpcPort: 50051
   config:
     TRACE_EXPORTER__IS_ENABLED: "true"
-    TRACE_EXPORTER__OTLP_ENDPOINT: "http://pulse-hub-otel-collector:4317"
+    TRACE_EXPORTER__OTLP_ENDPOINT: "http://pulse-hub-observability-otel-collector:4317"
     METRICS_EXPORTER__IS_ENABLED: "true"
-    METRICS_EXPORTER__OTLP_ENDPOINT: "http://pulse-hub-otel-collector:4317"
+    METRICS_EXPORTER__OTLP_ENDPOINT: "http://pulse-hub-observability-otel-collector:4317"
     LOGGING__IS_EXPORT_ENABLED: "true"
-    LOGGING__EXPORTING_ENDPOINT: "http://pulse-hub-otel-collector:4317"
+    LOGGING__EXPORTING_ENDPOINT: "http://pulse-hub-observability-otel-collector:4317"
     HTTP_SERVER__PORT: "8080"
     GRPC_SERVER__PORT: "50051"
     REDIS__HOST: "pulse-hub-redis-master"
@@ -59,11 +60,11 @@ service-analyzer:
     grpcPort: 50051
   config:
     TRACE_EXPORTER__IS_ENABLED: "true"
-    TRACE_EXPORTER__OTLP_ENDPOINT: "http://pulse-hub-otel-collector:4317"
+    TRACE_EXPORTER__OTLP_ENDPOINT: "http://pulse-hub-observability-otel-collector:4317"
     METRICS_EXPORTER__IS_ENABLED: "true"
-    METRICS_EXPORTER__OTLP_ENDPOINT: "http://pulse-hub-otel-collector:4317"
+    METRICS_EXPORTER__OTLP_ENDPOINT: "http://pulse-hub-observability-otel-collector:4317"
     LOGGING__IS_EXPORT_ENABLED: "true"
-    LOGGING__EXPORTING_ENDPOINT: "http://pulse-hub-otel-collector:4317"
+    LOGGING__EXPORTING_ENDPOINT: "http://pulse-hub-observability-otel-collector:4317"
     HTTP_SERVER__PORT: "8080"
     GRPC_SERVER__PORT: "50051"
     KAFKA_CONSUMER__BOOTSTRAP_SERVERS: "pulse-hub-kafka:9092"
@@ -78,6 +79,7 @@ service-analyzer:
 ##########################################################
 # ------------ INFRASTRUCTURE CONFIGURATION ------------ #
 ##########################################################
+
 postgres:
   image:
     repository: "bitnami/postgresql"
@@ -131,54 +133,3 @@ kafka:
   externalAccess:
     enabled: false
 
-otel-collector:
-  image:
-    repository: otel/opentelemetry-collector-contrib
-  mode: deployment
-  ports:
-    metrics:
-      enabled: true
-      containerPort: 8889
-      servicePort: 8889
-      protocol: TCP
-  service:
-    annotations:
-      prometheus.io/scrape: "true"
-      prometheus.io/port: "8889"
-      prometheus.io/path: "/metrics"
-  config:
-    receivers:
-      otlp:
-        protocols:
-          grpc:
-            endpoint: 0.0.0.0:4317
-          http:
-            endpoint: 0.0.0.0:4318
-    processors:
-      batch: {}
-    exporters:
-      otlp/tempo:
-        endpoint: pulse-hub-observability-tempo:4317
-        tls:
-          insecure: true
-      otlphttp/loki:
-        endpoint: http://pulse-hub-observability-loki:3100/otlp
-        tls:
-          insecure: true
-      prometheus:
-        endpoint: 0.0.0.0:8889
-      debug: {}
-    service:
-      pipelines:
-        traces:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [otlp/tempo]
-        logs:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [otlphttp/loki]
-        metrics:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [prometheus]
