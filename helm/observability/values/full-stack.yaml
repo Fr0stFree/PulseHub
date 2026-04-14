@@ -65,6 +65,12 @@ prometheus:
     persistentVolume:
       enabled: false
     retention: "6h"
+    resources:
+      limits:
+        memory: 512Mi
+      requests:
+        cpu: 200m
+        memory: 256Mi
   scrapeConfigs:
     opentelemetry-collector:
       enabled: true
@@ -111,7 +117,7 @@ grafana:
       memory: 256Mi
     requests:
       memory: 128Mi
-      cpu: 100m
+      cpu: 200m
   datasources:
     datasources.yaml:
       apiVersion: 1
@@ -185,7 +191,7 @@ tempo:
   replicas: 1
   resources:
     requests:
-      cpu: 100m
+      cpu: 200m
       memory: 256Mi
     limits:
       memory: 512Mi
